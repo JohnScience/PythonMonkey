@@ -1,48 +1,75 @@
 # PythonMonkey
 
+![Logo](https://i.imgur.com/znyErBj.png)
+
 ![Testing Suite](https://github.com/Kings-Distributed-Systems/PythonMonkey/actions/workflows/tests.yaml/badge.svg)
 
 ## About
-PythonMonkey is a Mozilla [SpiderMonkey](https://firefox-source-docs.mozilla.org/js/index.html) JavaScript engine embedded into the Python VM,
-using the Python engine to provide the JS host environment.
+PythonMonkey is a package for Python programming language that allows using JavaScript code from Python and vice versa. It is named after Mozilla [SpiderMonkey](https://firefox-source-docs.mozilla.org/js/index.html) JavaScript engine that this package embeds into the [Python VM](https://leanpub.com/insidethepythonvirtualmachine/read), thereby providing a JS host environment within Python.
 
-This product is in an early stage, approximately 80% to MVP as of July 2023. It is under active development by Distributive Corp.,
-https://distributive.network/. External contributions and feedback are welcome and encouraged.
+<!--The input on the wording would be more than welcome. -->
 
-The goal is to make writing code in either JS or Python a developer preference, with libraries commonly used in either language
-available eveywhere, with no significant data exchange or transformation penalties. For example, it should be possible to use NumPy 
-methods from a JS library, or to refactor a slow "hot loop" written in Python to execute in JS instead, taking advantage of 
-SpiderMonkey's JIT for near-native speed, rather than writing a C-language module for Python. At Distributive, we intend to use 
-this package to execute our complex `dcp-client` library, which is written in JS and enables distributed computing on the web stack.
+## Examples
+
+Example of a Python script that evaluates the JavaScript expression and prints it:
+
+```python
+#!/usr/bin/env python3
+"""
+This example returns a "HELLO, WORLD!" string created in JavaScript
+using `pm.eval` for execting the JavaScript code.
+The string is set to uppercase using JavaScript's `toUpperCase`
+function.
+"""
+
+import pythonmonkey as pm
+hello = pm.eval(" 'Hello, World!'.toUpperCase(); ")
+print(hello) # this outputs "HELLO, WORLD!"
+```
+
+* More basic examples can be found in the [`/examples`](https://github.com/Distributive-Network/PythonMonkey/tree/main/examples) directory.
+* Slightly more advanced examples can be found in the dedicated repository <https://github.com/Distributive-Network/PythonMonkey-examples>.
+* Example of a fullstack [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption and decryption app that uses the [`crypto-js`](https://www.npmjs.com/package/crypto-js) [NPM](https://en.wikipedia.org/wiki/Npm) package can be found at <https://github.com/Distributive-Network/PythonMonkey-Crypto-JS-Fullstack-Example>
+
+<!--It would be amazing to have a [Binder](https://jupyter.org/binder) repo with interactive examples -->
+
+## Product maturity
+
+This product is in an early stage, approximately 90% to [MVP](https://en.wikipedia.org/wiki/Minimum_viable_product) as of July 2023. It is under active development by Distributive Corp.,
+<https://distributive.network/>. External contributions and feedback are welcome and encouraged.
+
+## Goal of the package
+
+The goal is to make writing code in either JS or Python a developer preference rather than a hard requirement, with libraries commonly used in either language available everywhere, with no significant data exchange or transformation penalties. For example, it should be possible to use [NumPy](https://numpy.org/) methods from a JS library, or to refactor a slow ["hot loop"](https://en.wikipedia.org/wiki/Hot_spot_(computer_programming)) written in Python to execute in JS instead, taking advantage of  SpiderMonkey's JIT for near-native speed, rather than writing a C-language module for Python. At Distributive, we intend to use  this package to execute our complex [`dcp-client`](https://github.com/Distributed-Compute-Labs/dcp-client) library, which is written in JS and enables [distributed computing](https://www.geeksforgeeks.org/what-is-distributed-computing/) on the web stack.
 
 ### Data Interchange
-- Strings share immutable backing stores whenever possible (when allocating engine choses UCS-2 or Latin-1 internal string representation) to keep memory consumption under control, and to make it possible to move very large strings between JS and Python library code without memory-copy overhead.
-- TypedArrays to share mutable backing stores; if this is not possible we will implement a copy-on-write (CoW) solution.
-- JS objects are represented by Python dicts
-- JS Date objects are represented by Python datetime.datetime objects
-- Intrinsics (boolean, number, null, undefined) are passed by value
-- JS Functions are automatically wrapped so that they behave like Python functions, and vice-versa
+- Strings share immutable backing stores whenever possible (when allocating engine choses [UCS-2](https://en.wikipedia.org/wiki/Universal_Coded_Character_Set) or [Latin-1 (aka ISO/IEC 8859-1)](https://en.wikipedia.org/wiki/ISO/IEC_8859-1) internal string representation) to keep memory consumption under control, and to make it possible to move very large strings between JS and Python library code without memory-copy overhead.
+- JS [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray)s to share mutable backing stores; if this is not possible we will implement a [copy-on-write (CoW)](https://en.wikipedia.org/wiki/Copy-on-write) solution.
+- [JS objects](https://www.w3schools.com/js/js_objects.asp) are represented by [Python dictionarires](https://www.w3schools.com/python/python_dictionaries.asp).
+- [JS `Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) objects are represented by [Python `datetime.datetime` objects](https://docs.python.org/3/library/datetime.html#available-types:~:text=and%20tzinfo.-,class%20datetime.datetime,-A%20combination%20of).
+- JS intrinsics ([`boolean`](https://developer.mozilla.org/en-US/docs/Glossary/Primitive#:~:text=bigint-,boolean,-undefined), [`number`](https://developer.mozilla.org/en-US/docs/Glossary/Number), [`null`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/null), [`undefined`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined)) are passed by value.
+- JS Functions are automatically wrapped so that they behave like Python functions, and vice versa.
 
 ### Roadmap
-- [done] JS instrinsics coerce to Python intrinsics
-- [done] JS strings coerce to Python strings
-- [done] JS objects coerce to Python dicts [own-properties only]
-- [done] JS functions coerce to Python function wrappers
-- [done] JS exceptions propagate to Python
-- [done] Implement `eval()` function in Python which accepts JS code and returns JS->Python coerced values
-- [done] NodeJS+NPM-compatible CommonJS module system
-- [done] Python strings coerce to JS strings
-- [done] Python intrinsics coerce to JS intrinsics
-- [done] Python dicts coerce to JS objects
-- [done] Python `require` function, returns a coerced dict of module exports
-- [done] Python functions coerce to JS function wrappers
-- [done] CommonJS module system .py loader, loads Python modules for use by JS
-- JS object->Python dict coercion supports inherited-property lookup (via __getattribute__?)
-- [done] Python host environment supplies event loop, including EventEmitter, setTimeout, etc.
-- Python host environment supplies XMLHttpRequest (other project?)
-- Python host environment supplies basic subsets of NodeJS's fs, path, process, etc, modules; as-needed by dcp-client (other project?)
-- [done] Python TypedArrays coerce to JS TypeArrays
-- [done] JS TypedArrays coerce to Python TypeArrays
+- [x] JS instrinsics coerce to Python intrinsics
+- [x] JS strings coerce to Python strings
+- [x] JS objects coerce to Python dicts \[own-properties only\]
+- [x] JS functions coerce to Python function wrappers
+- [x] JS exceptions propagate to Python
+- [x] Implement `eval()` function in Python which accepts JS code and returns JS->Python coerced values
+- [x] NodeJS+NPM-compatible CommonJS module system
+- [x] Python strings coerce to JS strings
+- [x] Python intrinsics coerce to JS intrinsics
+- [x] Python dicts coerce to JS objects
+- [x] Python `require` function, returns a coerced dict of module exports
+- [x] Python functions coerce to JS function wrappers
+- [x] CommonJS module system .py loader, loads Python modules for use by JS
+- [ ] JS object->Python dict coercion supports inherited-property lookup (via __getattribute__?)
+- [x] Python host environment supplies event loop, including EventEmitter, setTimeout, etc.
+- [ ] Python host environment supplies XMLHttpRequest (other project?)
+- [ ] Python host environment supplies basic subsets of NodeJS's fs, path, process, etc, modules; as-needed by dcp-client (other project?)
+- [x] Python TypedArrays coerce to JS TypeArrays
+- [x] JS TypedArrays coerce to Python TypeArrays
 
 ## Build Instructions
 
@@ -113,12 +140,6 @@ Alternatively, you can build a `wheel` package by running `poetry build --format
 See [Python Wiki: DebuggingWithGdb](https://wiki.python.org/moin/DebuggingWithGdb)
 
 If you are using VSCode, it's more convenient to debug in [VSCode's built-in debugger](https://code.visualstudio.com/docs/editor/debugging). Simply press <kbd>F5</kbd> on an open Python to start debugging - We have [the `launch.json` file configured for you](.vscode/launch.json).
-
-## Examples
-
-* [examples/](examples/)
-* https://github.com/Distributive-Network/PythonMonkey-examples
-* https://github.com/Distributive-Network/PythonMonkey-Crypto-JS-Fullstack-Example
 
 ## API
 These methods are exported from the pythonmonkey module.
